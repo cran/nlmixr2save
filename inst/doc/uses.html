@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Using nlmixr2save</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using nlmixr2save</h1>
+
+
+
+<p><code>nlmixr2save</code> focuses on two related problems:</p>
+<ol style="list-style-type: decimal">
+<li><p>Saving <code>nlmixr2</code> results in a format that stays
+readable outside of <code>.rds</code>.</p></li>
+<li><p>Reusing expensive fits or simulations when nothing important has
+changed.</p></li>
+</ol>
+<div id="why-save-a-fit-this-way" class="section level2">
+<h2>Why save a fit this way?</h2>
+<p><code>saveFit()</code> writes a saved fit as a collection of files
+and then optionally zips them together. In practice, most of the saved
+object is reconstructed from:</p>
+<ul>
+<li><p><code>.R</code> files for model definitions and objects that can
+be recreated as source.</p></li>
+<li><p><code>.csv</code> files for tabular fit components and
+datasets.</p></li>
+</ul>
+<p>That means the saved fit is largely inspectable outside of R, and it
+is not tied to the binary serialization format used by a specific
+version of <code>nlmixr2</code> or <code>rxode2</code>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(nlmixr2est)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(nlmixr2data)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(nlmixr2save)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">nlmixr2</span>(one.cmt, theo_sd, <span class="at">est =</span> <span class="st">&quot;focei&quot;</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="fu">saveFit</span>(fit, <span class="st">&quot;fit&quot;</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>restored_fit <span class="ot">&lt;-</span> <span class="fu">loadFit</span>(<span class="st">&quot;fit&quot;</span>)</span></code></pre></div>
+<p>When <code>loadFit(&quot;fit&quot;)</code> runs, it recreates the object by
+sourcing the generated <code>.R</code> (for fit this would be
+<code>fit.R</code>) files and reading the generated <code>.csv</code>
+files back in.</p>
+<p>This is the main protection against a saved fit becoming unreadable
+simply because an internal serialization format changes.</p>
+</div>
+<div id="what-gets-restored" class="section level2">
+<h2>What gets restored?</h2>
+<p>For deterministic estimation methods, the restored object includes
+the full saved fit, including the original model, fit results, and
+<code>origData</code>.</p>
+<p>This is especially useful for long-running estimation jobs because
+the saved fit can be rebuilt without repeating the estimation
+itself.</p>
+</div>
+<div id="dataset-aware-caching" class="section level2">
+<h2>Dataset-aware caching</h2>
+<p>This <code>saveFit()</code> can automatically be performed and cached
+with a new operator <code>:=</code> and is the quickest way to save
+nlmixr2 fits (and other items). For example:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>fit <span class="sc">:=</span> <span class="fu">nlmixr2</span>(one.cmt, theo_sd, <span class="at">est =</span> <span class="st">&quot;focei&quot;</span>)</span></code></pre></div>
+<p>For <code>nlmixr2</code> fits, the cache key is based on:</p>
+<ul>
+<li>the normalized model definition,</li>
+<li>the estimation method,</li>
+<li>the control and table options, and</li>
+<li>a simplified version of the dataset that keeps the standard
+estimation columns, covariates, and requested <code>table$keep</code>
+columns.</li>
+</ul>
+<p>This has two important consequences.</p>
+<div id="irrelevant-dataset-changes-do-not-force-a-refit" class="section level3">
+<h3>1. Irrelevant dataset changes do not force a refit</h3>
+<p>If the new dataset only changes columns that are not used for
+estimation, <code>nlmixr2save</code> restores the existing fit instead
+of rerunning the estimation.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>fit <span class="sc">:=</span> <span class="fu">nlmixr2</span>(one.cmt, theo_sd, <span class="at">est =</span> <span class="st">&quot;focei&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>theo_sd_extra <span class="ot">&lt;-</span> theo_sd</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>theo_sd_extra<span class="sc">$</span>.ignored <span class="ot">&lt;-</span> <span class="st">&quot;notes&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>fit <span class="sc">:=</span> <span class="fu">nlmixr2</span>(one.cmt, theo_sd_extra, <span class="at">est =</span> <span class="st">&quot;focei&quot;</span>)</span></code></pre></div>
+<p>The expensive estimation is skipped, but the restored object still
+updates <code>fit$origData</code> to the new dataset. In other words,
+the cached fit is reused only when the meaningful estimation inputs
+match, while the saved object still tracks the latest original dataset
+you supplied.</p>
+</div>
+<div id="meaningful-dataset-changes-do-force-a-refit" class="section level3">
+<h3>2. Meaningful dataset changes do force a refit</h3>
+<p>If you change a column that matters to the fit, such as
+<code>DV</code>, time, dosing information, a covariate, or a
+<code>table$keep</code> column, the cache key changes and the estimation
+is run again.</p>
+<p>This is the intended safety boundary: harmless dataset changes are
+absorbed, but real estimation changes invalidate the cache.</p>
+</div>
+</div>
+<div id="using-for-long-running-fits-and-simulations" class="section level2">
+<h2>Using <code>:=</code> for long-running fits and simulations</h2>
+<p>The <code>:=</code> operator caches the result under the object name
+on the left-hand side. If the saved result matches the current call, it
+restores the cached object instead of rerunning the call.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>fit <span class="sc">:=</span> <span class="fu">nlmixr2</span>(one.cmt, theo_sd, <span class="at">est =</span> <span class="st">&quot;focei&quot;</span>) <span class="co"># creates fit.zip</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># Same call: restore from cache</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>fit <span class="sc">:=</span> <span class="fu">nlmixr2</span>(one.cmt, theo_sd, <span class="at">est =</span> <span class="st">&quot;focei&quot;</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co"># Different estimation method: rerun</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>fit <span class="sc">:=</span> <span class="fu">nlmixr2</span>(one.cmt, theo_sd, <span class="at">est =</span> <span class="st">&quot;saem&quot;</span>) <span class="co"># overwrites fit.zip</span></span></code></pre></div>
+<p>For deterministic <code>nlmixr2</code> fits, the cached form is the
+text-and-csv-based fit bundle described above. For other functions, the
+cached form is usually an <code>.rds</code> file.</p>
+</div>
+<div id="seed-aware-restores-for-stochastic-work" class="section level2">
+<h2>Seed-aware restores for stochastic work</h2>
+<p>Some calculations depend on the random-number stream. For those,
+<code>:=</code> stores both the result and random-state metadata. When
+the result is restored, the seed is advanced to the same post-run state
+so downstream code sees the same random stream it would have seen if the
+expensive call had actually run.</p>
+<p>This is what makes <code>:=</code> useful for long-running
+simulations and stochastic estimation methods: you can restore the
+result without silently changing the reproducibility of the rest of the
+script.</p>
+</div>
+<div id="integrating-nlmixr2save-into-your-package" class="section level2">
+<h2>Integrating <code>nlmixr2save</code> into your package</h2>
+<p>There are two common integration paths.</p>
+<div id="deterministic-estimation" class="section level3">
+<h3>Deterministic estimation</h3>
+<p>If your package returns standard <code>nlmixr2</code> fit objects
+through a deterministic estimation method, users can already write:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>fit <span class="sc">:=</span> <span class="fu">nlmixr2</span>(model, data, <span class="at">est =</span> <span class="st">&quot;focei&quot;</span>) <span class="co"># saves fit</span></span></code></pre></div>
+<p>and get zip-based save/restore behavior automatically.</p>
+</div>
+<div id="stochastic-estimation-or-simulation" class="section level3">
+<h3>Stochastic estimation or simulation</h3>
+<p>If your package provides a stochastic workflow, use the seed-aware
+path instead. For plain simulation functions, register the function name
+with <code>saveFitRandom()</code>. For <code>nlmixr2</code> estimation
+methods, mark the estimator as random so <code>:=</code> knows to use
+the seed-aware cache path.</p>
+<p>The companion vignette
+<code>vignette(&quot;register-simulation-functions&quot;, package = &quot;nlmixr2save&quot;)</code>
+shows both patterns.</p>
+</div>
+</div>
+<div id="limitations" class="section level2">
+<h2>Limitations</h2>
+<p><code>nlmixr2save</code> is intentionally conservative, and a few
+limitations are worth keeping in mind:</p>
+<ol style="list-style-type: decimal">
+<li><p>The saved fit is primarily <code>.R</code> and <code>.csv</code>,
+but not exclusively. Some fit components still fall back to
+<code>.rds</code> when they cannot be safely recreated as text.</p></li>
+<li><p>Cache reuse only works when <code>:=</code> sees the expensive
+call directly. Wrapping the call inside something like
+<code>suppressMessages(nlmixr2(...))</code> forces the call to run
+before caching can intercept it.</p></li>
+<li><p>If dataset simplification cannot be computed, caching falls back
+to hashing the full dataset. That is safe, but it can cause more reruns
+than strictly necessary.</p></li>
+<li><p>Seed-aware restores require the same starting random state. If
+the seed is different, the cached stochastic result is discarded and
+rerun.</p></li>
+<li><p>The cache files are named from the left-hand-side object name and
+written in the current working directory, so project-level file
+management still matters.</p></li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
