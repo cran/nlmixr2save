@@ -12,7 +12,7 @@
 
 
 
-<title>Registering simulation functions</title>
+<title>Sharing a fit without the original data</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -336,106 +336,146 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Registering simulation functions</h1>
+<h1 class="title toc-ignore">Sharing a fit without the original
+data</h1>
 
 
 
-<p><code>nlmixr2save</code> can cache more than <code>nlmixr2</code>
-fits. If your package has its own simulation or stochastic estimation
-functions, you can register them so the <code>:=</code> operator
-restores cached results without breaking reproducibility.</p>
-<div id="registering-a-stochastic-simulation-function" class="section level2">
-<h2>Registering a stochastic simulation function</h2>
-<p>Use <code>saveFitRandom()</code> to tell <code>nlmixr2save</code>
-that a function should be treated as random-state-aware.</p>
+<p>A saved <code>nlmixr2</code> fit normally travels with the data it
+was fit to: the subject-level dataset is stored inside the
+<code>.zip</code> (as <code>origData</code>) and, for a standard fit, so
+is the returned per-observation prediction/residual table. That is
+convenient for your own re-use, but it is often exactly what you cannot
+share – the data may be confidential, licensed, large, or simply not
+yours to distribute.</p>
+<p><code>nlmixr2save</code> lets you export a fit <strong>without the
+original data</strong>, and optionally <strong>without the output
+tables</strong> as well.</p>
+<div id="omitting-the-data-when-you-save" class="section level2">
+<h2>Omitting the data when you save</h2>
+<p><code>saveFit()</code> takes a <code>data</code> argument. With
+<code>data = FALSE</code>, the original dataset is left out of the
+zip:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(nlmixr2save)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">saveFitRandom</span>(<span class="st">&quot;mySimulate&quot;</span>)</span></code></pre></div>
-<p>After registration, calls of the form below are cached in
-<code>sim.rds</code> together with the starting and ending random
-state:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>sim <span class="sc">:=</span> <span class="fu">mySimulate</span>(model, <span class="at">n =</span> <span class="dv">1000</span>)</span></code></pre></div>
-<p>On restore, <code>nlmixr2save</code> checks:</p>
-<ol style="list-style-type: decimal">
-<li>the function arguments,</li>
-<li>whether the original run changed the random state, and</li>
-<li>whether the current run starts from the same random state.</li>
-</ol>
-<p>If those checks pass, the cached value is loaded and the random seed
-is advanced to the same state the original run would have produced.</p>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">saveFit</span>(fit, <span class="at">data =</span> <span class="cn">FALSE</span>) <span class="co"># writes fit.zip with no origData inside</span></span></code></pre></div>
+<p>To make that the default for a whole script or report, set the
+option:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">options</span>(<span class="at">nlmixr2save.data =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<p>The saved fit is otherwise complete: it still contains the model, the
+parameter estimates, and (for a standard fit) the prediction/residual
+columns. Only the input dataset is gone.</p>
 </div>
-<div id="registering-at-package-load-time" class="section level2">
-<h2>Registering at package load time</h2>
-<p>If your package always wants a function treated as stochastic,
-register it in <code>.onLoad()</code>:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>.onLoad <span class="ot">&lt;-</span> <span class="cf">function</span>(libname, pkgname) {</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  nlmixr2save<span class="sc">::</span><span class="fu">saveFitRandom</span>(<span class="st">&quot;mySimulate&quot;</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>}</span></code></pre></div>
-<p>You can also unregister it later:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">saveFitRandom</span>(<span class="st">&quot;mySimulate&quot;</span>, <span class="at">remove =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div id="sharing-an-existing-saved-fit-nlmixr2saveshare" class="section level2">
+<h2>Sharing an existing saved fit: <code>nlmixr2saveShare()</code></h2>
+<p>If you already have <code>fit.zip</code> (with data), you do not need
+to re-run anything. <code>nlmixr2saveShare()</code> reads it and writes
+a stripped sibling zip, leaving the original untouched:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># fit.zip  -&gt;  fit-noData.zip  (data removed, predictions/tables kept)</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">nlmixr2saveShare</span>(<span class="st">&quot;fit&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># fit.zip  -&gt;  fit-noData-noFit.zip  (data AND output tables removed)</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">nlmixr2saveShare</span>(<span class="st">&quot;fit&quot;</span>, <span class="at">noFit =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><code>nlmixr2saveShare()</code> also accepts a live fit object (it
+takes the output name from the object), so you can share straight from a
+session:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">nlmixr2saveShare</span>(fit)              <span class="co"># -&gt; fit-noData.zip</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">nlmixr2saveShare</span>(fit, <span class="at">noFit =</span> <span class="cn">TRUE</span>) <span class="co"># -&gt; fit-noData-noFit.zip</span></span></code></pre></div>
+<p>It resolves file names through the same <code>nlmixr2save.dir</code>
+and <code>nlmixr2save.prefix</code> options as the <code>:=</code>
+cache, so it finds prefixed caches in the cache directory and writes the
+shareable copies alongside them:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">options</span>(<span class="at">nlmixr2save.dir =</span> <span class="st">&quot;cache&quot;</span>, <span class="at">nlmixr2save.prefix =</span> <span class="st">&quot;mp-&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">nlmixr2saveShare</span>(<span class="st">&quot;fit&quot;</span>) <span class="co"># reads cache/mp-fit.zip -&gt; writes cache/mp-fit-noData.zip</span></span></code></pre></div>
+<div id="what-nofit-removes" class="section level3">
+<h3>What <code>noFit</code> removes</h3>
+<p><code>nlmixr2saveShare()</code> always removes the original data.
+With <code>noFit = TRUE</code> it <em>additionally</em> removes the
+returned prediction/residual data frame, so the shared fit is reduced to
+the model and its results. Internally this saves the fit’s
+<strong>core</strong> (the same shape a <code>calcTables = FALSE</code>
+fit already has) rather than the data frame:</p>
+<table>
+<colgroup>
+<col width="28%" />
+<col width="35%" />
+<col width="35%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">kept / removed</th>
+<th align="center"><code>fit-noData.zip</code></th>
+<th align="center"><code>fit-noData-noFit.zip</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">model, <code>iniDf</code>, <code>parFixed</code>,
+<code>objDf</code>, <code>omega</code></td>
+<td align="center">kept</td>
+<td align="center">kept</td>
+</tr>
+<tr class="even">
+<td align="left">eta table (<code>etaObf</code>), parameter history
+(<code>parHistData</code>)</td>
+<td align="center">kept</td>
+<td align="center">kept</td>
+</tr>
+<tr class="odd">
+<td align="left">per-observation prediction/residual data frame</td>
+<td align="center">kept</td>
+<td align="center"><strong>removed</strong></td>
+</tr>
+<tr class="even">
+<td align="left">original dataset (<code>origData</code>)</td>
+<td align="center"><strong>removed</strong></td>
+<td align="center"><strong>removed</strong></td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="integrating-stochastic-estimation-methods" class="section level2">
-<h2>Integrating stochastic estimation methods</h2>
-<p><code>nlmixr2save</code> handles <code>nlmixr2(...)</code> calls
-differently from ordinary function calls:</p>
+</div>
+<div id="side-effects-what-a-stripped-fit-can-no-longer-do" class="section level2">
+<h2>Side effects – what a stripped fit can no longer do</h2>
+<p>Removing data is not free. The stripped fit still loads, prints, and
+reports its parameter estimates, but anything that needs what you
+removed will not work.</p>
+<p><strong>Without the original data (<code>-noData</code>, or
+<code>saveFit(data = FALSE)</code>):</strong></p>
 <ul>
-<li><p>deterministic estimation methods are cached as saved fits
-(<code>.zip</code> bundles),</p></li>
-<li><p>stochastic estimation methods are cached with seed metadata
-(<code>.rds</code> files).</p></li>
+<li><code>fit$origData</code> is absent.</li>
+<li>Operations that need the raw dataset fail or are degraded: visual
+predictive checks (<code>vpcSim()</code> / tidyvpc), re-deriving
+residuals or predictions (<code>augPred()</code>,
+<code>addCwres()</code>, <code>addNpde()</code>, …), and re-fitting or
+updating the model.</li>
+<li>The prediction/residual columns already computed in the fit (IPRED,
+PRED, CWRES, …) and the parameter tables are unaffected, so printing and
+standard goodness-of-fit columns still work.</li>
 </ul>
-<p>To place your estimation method into the seed-aware group, define the
-<code>nlmixr2Est.&lt;method&gt;</code> method with a <code>random</code>
-attribute set to <code>TRUE</code> or to a function that inspects the
-control object.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>nlmixr2Est.myMethod <span class="ot">&lt;-</span> <span class="cf">function</span>(object, data, control, ...) {</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="co"># run stochastic estimation here</span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>}</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="fu">attr</span>(nlmixr2Est.myMethod, <span class="st">&quot;random&quot;</span>) <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span></code></pre></div>
-<p>If the stochastic behavior depends on control settings, the attribute
-can be a function:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">attr</span>(nlmixr2Est.myMethod, <span class="st">&quot;random&quot;</span>) <span class="ot">&lt;-</span> <span class="cf">function</span>(control) {</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">isTRUE</span>(control<span class="sc">$</span>stochastic)</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>}</span></code></pre></div>
-<p>With that in place, this call uses the seed-aware cache path
-automatically:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>fit <span class="sc">:=</span> <span class="fu">nlmixr2</span>(model, data, <span class="at">est =</span> <span class="st">&quot;myMethod&quot;</span>, <span class="at">control =</span> <span class="fu">list</span>(<span class="at">stochastic =</span> <span class="cn">TRUE</span>))</span></code></pre></div>
+<p><strong>Without the output tables (<code>-noData-noFit</code>,
+<code>noFit = TRUE</code>):</strong></p>
+<ul>
+<li>The fit loads as a <code>nlmixr2FitCore</code> (an environment),
+<strong>not</strong> a <code>nlmixr2FitData</code> data frame – there is
+no per-observation table, so <code>as.data.frame(fit)</code> has no rows
+and plots/diagnostics that need those rows will not work.</li>
+<li>The model, parameter estimates (<code>parFixed</code> /
+<code>parFixedDf</code>), objective (<code>objDf</code>), covariance
+(<code>omega</code>), eta table (<code>etaObf</code>), and parameter
+history (<code>parHistData</code>) remain – enough to inspect and report
+the fitted model.</li>
+<li>This form has no original data either (it is a superset of
+<code>-noData</code>).</li>
+</ul>
 </div>
-<div id="when-to-use-each-integration-path" class="section level2">
-<h2>When to use each integration path</h2>
-<p>Use <code>saveFitRandom()</code> when:</p>
-<ol style="list-style-type: decimal">
-<li><p>you are caching a regular function such as a simulation
-helper,</p></li>
-<li><p>the result should be stored as a generic <code>.rds</code>,
-and</p></li>
-<li><p>reproducibility depends on restoring the random seed
-state.</p></li>
-</ol>
-<p>Use the <code>random</code> attribute on
-<code>nlmixr2Est.&lt;method&gt;</code> when:</p>
-<ol style="list-style-type: decimal">
-<li><p>the function is an <code>nlmixr2</code> estimation
-method,</p></li>
-<li><p>deterministic runs should still use the fit-saving
-<code>.zip</code> path, and</p></li>
-<li><p>stochastic runs should move into the seed-aware <code>.rds</code>
-path.</p></li>
-</ol>
-</div>
-<div id="practical-limitations" class="section level2">
-<h2>Practical limitations</h2>
-<p>The same limitations apply here as in the main usage vignette:</p>
-<ol style="list-style-type: decimal">
-<li><p><code>:=</code> needs to see the expensive call directly on the
-right-hand side.</p></li>
-<li><p>Seed-aware restores only replay safely when the starting random
-state matches.</p></li>
-<li><p>Generic registered functions are restored from <code>.rds</code>,
-not from the text-and-csv fit format used for deterministic
-<code>nlmixr2</code> fits.</p></li>
-</ol>
+<div id="note-on-the-cache-operator" class="section level2">
+<h2>Note on the cache operator</h2>
+<p>The <code>data</code> option affects <code>saveFit()</code> and
+<code>nlmixr2saveShare()</code> only. The <code>:=</code> caching
+operator is intentionally left unchanged: it re-attaches the data from
+the live call on restore, so its cache continues to behave as
+before.</p>
 </div>
 
 
